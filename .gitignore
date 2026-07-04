@@ -145,6 +145,18 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
+# Terraform artifacts
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+infra/terraform/terraform.tfvars
+
 # Azurite local storage artifacts
 __blobstorage__/
 __queuestorage__/
