@@ -119,6 +119,9 @@ dist
 # Firebase cache directory
 .firebase/
 
+# Azure Functions local runtime settings
+local.settings.json
+
 # TernJS port file
 .tern-port
 
@@ -141,3 +144,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Azurite local storage artifacts
+__blobstorage__/
+__queuestorage__/
+__tablestorage__/
+__azurite_db_blob__.json
+__azurite_db_blob_extent__.json
+__azurite_db_queue__.json
+__azurite_db_queue_extent__.json
+__azurite_db_table__.json
