@@ -1,32 +1,54 @@
-import * as fs from "fs";
-import { MONTH_LIMIT } from "./constants";
+import { TransactionDocument } from "./BudgetRepository";
 
-export function getTotal(filePath: string): {
-  amount: number;
-  message: string;
-} {
-  try {
-    if (fs.existsSync(filePath)) {
-      const data = fs.readFileSync(filePath, "utf-8").trim();
-      const total = parseFloat(data);
-      const range = Math.round((MONTH_LIMIT - total) * 100) / 100;
-      return {
-        amount: total,
-        message: `📊 Всего в конвертике: ${total}\n⏳ Осталось до конца месяца: ${range}`,
-      };
-    }
-  } catch (error) {
-    console.error("File Error:", error);
+export function formatTransactionsForTelegram(
+  transactions: TransactionDocument[],
+  available: number,
+): string {
+  if (transactions.length === 0) {
+    return "*No transactions recorded today\\.*";
   }
-  return { amount: 0, message: `📊 Всего в конвертике: 0` };
+
+  let message = "*Today's Transactions\\:*\n\n";
+
+  for (const tx of transactions) {
+    const time = new Date(tx.date).toLocaleTimeString("pl-PL", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const escapedTime = escapeMarkdownV2(time);
+    const formattedAmount = escapeMarkdownV2(tx.amount.toFixed(2));
+
+    message += `${escapedTime} \\-\\> *${formattedAmount}* PLN  ${tx.description}\n`;
+  }
+
+  const escapedAvailable = escapeMarkdownV2(available.toFixed(2));
+  message += `\n*Available\\: ${escapedAvailable}* PLN`;
+
+  return message;
 }
 
-export function updateTotal(
-  amount: number,
-  filePath: string,
-): { amount: number; message: string } {
-  const rawTotal = getTotal(filePath).amount + amount;
-  const newTotal = Math.round(rawTotal * 100) / 100;
-  fs.writeFileSync(filePath, newTotal.toString(), "utf-8");
-  return getTotal(filePath);
+export function parseBotCommand(inputText: string): { amount: number; description: string } | null {
+  if (!inputText) {
+    return null;
+  }
+
+  const regex = /^(?<amount>-?\d+[\.,]?\d*)\s?(?<description>[a-zA-Z0-9_а-яА-ЯёЁ\s]+)?$/;
+
+  const match = inputText.trim().match(regex);
+
+  if (!match) {
+    return null;
+  }
+
+  const { amount, description } = match.groups as { amount: string; description: string };
+
+  return {
+    amount: parseFloat(amount.replace(",", ".")),
+    description: description,
+  };
+}
+
+function escapeMarkdownV2(text: string): string {
+  return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
 }

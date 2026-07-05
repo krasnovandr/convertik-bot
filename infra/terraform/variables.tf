@@ -14,6 +14,12 @@ variable "function_app_name" {
   type        = string
 }
 
+variable "service_plan_name" {
+  description = "Optional existing service plan name override"
+  type        = string
+  default     = null
+}
+
 variable "storage_account_name" {
   description = "Optional storage account name override (3-24 lowercase alphanumeric)"
   type        = string
@@ -24,12 +30,6 @@ variable "node_version" {
   description = "Node.js runtime version for Function App"
   type        = string
   default     = "24"
-}
-
-variable "functions_extension_version" {
-  description = "Functions runtime version"
-  type        = string
-  default     = "~4"
 }
 
 variable "bot_token" {
