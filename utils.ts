@@ -19,16 +19,19 @@ export function formatTransactionsForTelegram(
     const dateLabel = txDate.toLocaleDateString("en", {
       day: "2-digit",
       month: "short",
+      timeZone: "Europe/Warsaw",
     });
 
     if (dateLabel !== lastDateLabel) {
       lines.push(fmt`${bold(dateLabel)}`);
       lastDateLabel = dateLabel;
-    }1
+    }
+    1;
 
     const time = txDate.toLocaleTimeString("pl-PL", {
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "Europe/Warsaw",
     });
 
     lines.push(
