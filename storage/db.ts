@@ -1,4 +1,3 @@
-// db.ts
 import { InvocationContext } from "@azure/functions/types/InvocationContext";
 import { BudgetRepository } from "./BudgetRepository";
 
@@ -12,9 +11,9 @@ export const budgetRepository = new BudgetRepository(connectionString);
 
 let isInitialized = false;
 
-export async function getInitializedRepository(context: InvocationContext): Promise<BudgetRepository> {
+export async function getInitializedRepository(): Promise<BudgetRepository> {
   if (!isInitialized) {
-    await budgetRepository.init(context);
+    await budgetRepository.init();
     isInitialized = true;
   }
   return budgetRepository;

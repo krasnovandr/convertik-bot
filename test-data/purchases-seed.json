@@ -1,0 +1,106 @@
+[
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e01",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "продукты",
+    "amount": 245.5,
+    "date": "2026-07-01T08:12:03.120Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e02",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "кофе",
+    "amount": 18.9,
+    "date": "2026-07-01T15:47:29.451Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e03",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "бензин",
+    "amount": 180,
+    "date": "2026-07-02T09:34:11.902Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e04",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "аптека витамины",
+    "amount": 76.25,
+    "date": "2026-07-02T19:05:44.330Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e05",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "ресторан ужин",
+    "amount": 312.75,
+    "date": "2026-07-03T20:22:10.008Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e06",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "такси",
+    "amount": 42.4,
+    "date": "2026-07-04T07:58:36.671Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e07",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "продукты неделя",
+    "amount": 410.6,
+    "date": "2026-07-04T18:16:52.219Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e08",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "кино билеты",
+    "amount": 96,
+    "date": "2026-07-05T12:40:07.884Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e09",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "подарок другу",
+    "amount": 150,
+    "date": "2026-07-06T10:03:59.140Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e10",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "коммуналка",
+    "amount": 520.15,
+    "date": "2026-07-07T09:11:23.507Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e11",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "печеньки дикие",
+    "amount": 120,
+    "date": "2026-07-08T23:29:00.114Z"
+  },
+  {
+    "id": "e3f1a2b4-6c8d-4a1e-9b2f-1a2b3c4d5e12",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "мароквка",
+    "amount": 500,
+    "date": "2026-07-08T23:29:41.276Z"
+  },
+  {
+    "id": "bb90d04f-39c9-481d-ba3c-fe1eecf638e0",
+    "userId": "5936760900",
+    "userName": "Andr",
+    "description": "мароквка 2",
+    "amount": 500.2,
+    "date": "2026-07-08T21:30:16.686Z"
+  }
+]

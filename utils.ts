@@ -1,31 +1,45 @@
-import { TransactionDocument } from "./BudgetRepository";
+import { fmt, bold, join, FmtString } from "telegraf/format";
+import { PurchaseDocument } from "./types";
 
 export function formatTransactionsForTelegram(
-  transactions: TransactionDocument[],
+  transactions: PurchaseDocument[],
   available: number,
-): string {
+): FmtString {
   if (transactions.length === 0) {
-    return "*No transactions recorded today\\.*";
+    return fmt`No transactions recorded`;
   }
 
-  let message = "*Today's Transactions\\:*\n\n";
+  const lines: FmtString[] = [fmt`Current Month Transactions:`, fmt``];
+
+  let lastDateLabel: string | null = null;
 
   for (const tx of transactions) {
-    const time = new Date(tx.date).toLocaleTimeString("pl-PL", {
+    const txDate = new Date(tx.date);
+
+    const dateLabel = txDate.toLocaleDateString("en", {
+      day: "2-digit",
+      month: "short",
+    });
+
+    if (dateLabel !== lastDateLabel) {
+      lines.push(fmt`${bold(dateLabel)}`);
+      lastDateLabel = dateLabel;
+    }1
+
+    const time = txDate.toLocaleTimeString("pl-PL", {
       hour: "2-digit",
       minute: "2-digit",
     });
 
-    const escapedTime = escapeMarkdownV2(time);
-    const formattedAmount = escapeMarkdownV2(tx.amount.toFixed(2));
-
-    message += `${escapedTime} \\-\\> *${formattedAmount}* PLN  ${tx.description}\n`;
+    lines.push(
+      fmt`${time} -> ${tx.userName ?? ""} ${bold(tx.amount.toFixed(2))} ${tx.description ?? ""}`,
+    );
   }
 
-  const escapedAvailable = escapeMarkdownV2(available.toFixed(2));
-  message += `\n*Available\\: ${escapedAvailable}* PLN`;
+  lines.push(fmt``);
+  lines.push(fmt`${bold(`Available: ${available.toFixed(2)}`)}`);
 
-  return message;
+  return join(lines, "\n");
 }
 
 export function parseBotCommand(inputText: string): { amount: number; description: string } | null {
@@ -33,7 +47,7 @@ export function parseBotCommand(inputText: string): { amount: number; descriptio
     return null;
   }
 
-  const regex = /^(?<amount>-?\d+[\.,]?\d*)\s?(?<description>[a-zA-Z0-9_а-яА-ЯёЁ\s]+)?$/;
+  const regex = /^(?<amount>-?\d+[\.,]?\d*)\s*(?<description>[a-zA-Z0-9_а-яА-ЯёЁ\s]+)?$/;
 
   const match = inputText.trim().match(regex);
 
@@ -49,6 +63,18 @@ export function parseBotCommand(inputText: string): { amount: number; descriptio
   };
 }
 
-function escapeMarkdownV2(text: string): string {
-  return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
+export function currentMonthDate(): string {
+  const now = new Date();
+  const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+
+  return startOfMonth;
+}
+
+export function previousMonthDate(): string {
+  const now = new Date();
+  const startOfPreviousMonth = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
+  ).toISOString();
+
+  return startOfPreviousMonth;
 }
