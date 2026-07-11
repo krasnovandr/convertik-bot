@@ -154,8 +154,9 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
-.terraform.lock.hcl
 infra/terraform/terraform.tfvars
+infra/terraform/*.tfvars
+!infra/terraform/terraform.tfvars.example
 
 # Azurite local storage artifacts
 __blobstorage__/

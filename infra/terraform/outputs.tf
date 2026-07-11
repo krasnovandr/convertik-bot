@@ -33,3 +33,18 @@ output "application_insights_connection_string" {
   value       = azurerm_application_insights.this.connection_string
   sensitive   = true
 }
+
+output "cosmos_account_name" {
+  description = "Cosmos DB account name"
+  value       = azurerm_cosmosdb_account.this.name
+}
+
+output "cosmos_endpoint" {
+  description = "Cosmos DB account endpoint"
+  value       = azurerm_cosmosdb_account.this.endpoint
+}
+
+output "cosmos_database_name" {
+  description = "Cosmos DB database name"
+  value       = "home-budget"
+}

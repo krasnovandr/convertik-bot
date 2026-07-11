@@ -39,6 +39,17 @@ variable "bot_token" {
   default     = null
 }
 
+variable "cosmos_account_name" {
+  description = "Name of the existing Cosmos DB account to import and manage (in the same resource group)"
+  type        = string
+}
+
+variable "cosmos_location" {
+  description = "Azure region of the existing Cosmos DB account (must match its current region)"
+  type        = string
+  default     = "West US 2"
+}
+
 variable "user_id_1" {
   description = "Allowed Telegram user id #1"
   type        = string

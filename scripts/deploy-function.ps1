@@ -1,54 +1,38 @@
 param(
-  [Parameter(Mandatory = $true)]
-  [string]$ResourceGroup,
-
-  [Parameter(Mandatory = $true)]
-  [string]$FunctionAppName,
-
-  [string]$ZipPath = ".\\deploy.zip"
+  [Parameter(Mandatory = $true)] [string]$ResourceGroup,
+  [Parameter(Mandatory = $true)] [string]$FunctionAppName,
+  [string]$ZipPath = ".\deploy.zip"
 )
 
 $ErrorActionPreference = "Stop"
 
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = Resolve-Path (Join-Path $scriptDir "..")
-
+# Navigate to the repository root directory
+$repoRoot = Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..")
 Push-Location $repoRoot
+
 try {
-  Write-Host "Building TypeScript project..."
+  # 1. Build TypeScript project
+  Write-Host "📦 Building TypeScript project..." -ForegroundColor Cyan
   npm run build
 
-  Write-Host "Installing production dependencies..."
-  npm ci --omit=dev
+  # 2. Remove devDependencies to minimize package size
+  Write-Host "🗑️ Removing dev dependencies for production..." -ForegroundColor Yellow
+  npm prune --production
 
-  if (Test-Path $ZipPath) {
-    Remove-Item $ZipPath -Force
-  }
+  # 3. Create ZIP package (old file will be overwritten automatically due to -Force)
+  Write-Host "🤐 Creating deployment package at $ZipPath ..." -ForegroundColor Cyan
+  Compress-Archive -Path dist, node_modules, host.json, package.json, package-lock.json -DestinationPath $ZipPath -Force
 
-  Write-Host "Creating deployment package at $ZipPath ..."
-  Compress-Archive -Path dist,node_modules,host.json,package.json,package-lock.json -DestinationPath $ZipPath -Force
+  # 4. Deploy package to Azure Function App
+  Write-Host "🚀 Deploying package to Azure Function App..." -ForegroundColor Green
+  az functionapp deployment source config-zip --resource-group $ResourceGroup --name $FunctionAppName --src $ZipPath
 
-# # 1. Remove build-related app settings not supported on this SKU for zip deploy
-# Write-Host "Removing SCM_DO_BUILD_DURING_DEPLOYMENT / ENABLE_ORYX_BUILD app settings..." -ForegroundColor Cyan
-# az functionapp config appsettings delete `
-#     --resource-group $ResourceGroup `
-#     --name $FunctionAppName `
-#     --setting-names SCM_DO_BUILD_DURING_DEPLOYMENT ENABLE_ORYX_BUILD `
-#     --output none
-
-# 2. Deploy package to Azure Function App
-Write-Host "Deploying package to Azure Function App..." -ForegroundColor Cyan
-az functionapp deployment source config-zip `
-    --resource-group $ResourceGroup `
-    --name $FunctionAppName `
-    --src $ZipPath
-
-# 3. Sync function triggers (Optional: Only keep this if Azure is giving you sync errors)
-Write-Host "Syncing function triggers..." -ForegroundColor Cyan
-$siteId = az functionapp show --resource-group $ResourceGroup --name $FunctionAppName --query id -o tsv
-az rest --method post --uri "https://management.azure.com$siteId/syncfunctiontriggers?api-version=2023-12-01"
-  Write-Host "Deployment completed."
+  Write-Host "🎉 Deployment completed successfully!" -ForegroundColor Green
 }
 finally {
+  # 5. Restore devDependencies so local development environment remains intact
+  Write-Host "🔄 Restoring dev dependencies for local development..." -ForegroundColor Cyan
+  npm install
+
   Pop-Location
 }

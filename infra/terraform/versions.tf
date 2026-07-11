@@ -7,6 +7,13 @@ terraform {
       version = "= 4.80.0"
     }
   }
+
+  backend "azurerm" {
+    resource_group_name  = "rg-convertik-bot"
+    storage_account_name = "tfstateconvertikbot"
+    container_name       = "tfstate"
+    key                  = "convertik-bot.tfstate"
+  }
 }
 
 provider "azurerm" {
