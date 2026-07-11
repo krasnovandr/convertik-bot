@@ -9,14 +9,35 @@ import { MONTH_LIMIT as DEFAULT_MONTH_LIMIT } from "./constants";
 import { AddTransactionMessageInput, AddTransactionResult } from "./types";
 
 export async function getDetailsMessage(db: BudgetRepository) {
-  const currentMonthTotal = await db.getTotalCostForMonth();
+  const actualSpends = await db.getTotalCostForMonth();
   const currentMonthTransactions = await db.getTransactionsFromDate();
 
   const monthLimit = await ensureCurrentMonthLimit(db);
+  const budgetAvailable = monthLimit - actualSpends;
+  const estimatedSpends = calculatePlannedSpends(monthLimit, actualSpends);
 
-  const available = monthLimit - currentMonthTotal;
+  return formatTransactionsForTelegram({
+    transactions: currentMonthTransactions,
+    monthLimit:monthLimit,
+    budgetAvailable,
+    plannedSpends: estimatedSpends,
+    actualSpends,
+  });
+}
 
-  return formatTransactionsForTelegram(currentMonthTransactions, available);
+function calculatePlannedSpends(monthLimit: number, currentMonthTotal: number) {
+  const now = new Date();
+  const currentDay = now.getDate();
+  const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  const amountPerDay = monthLimit / totalDaysInMonth;
+  const plannedSpends = amountPerDay * currentDay;
+
+  return plannedSpends;
+}
+
+export async function removeLastTransaction(db: BudgetRepository): Promise<void> {
+  await db.removeLastTransaction();
 }
 
 export async function handleTransactionMessage(

@@ -1,8 +1,6 @@
-import { CosmosClient, Container,BulkOperationType } from "@azure/cosmos";
+import { CosmosClient, Container, BulkOperationType } from "@azure/cosmos";
 import { currentMonthDate } from "../utils";
 import { ConfigurationDocument, PurchaseDocument, PurchaseInput } from "../types";
-
-
 
 export class BudgetRepository {
   private client: CosmosClient;
@@ -58,6 +56,34 @@ export class BudgetRepository {
     }
 
     return resource;
+  }
+
+  async removeLastTransaction(): Promise<boolean> {
+    if (!this.purchases) {
+      throw new Error("Repository not initialized. Call init() first.");
+    }
+
+    const querySpec = {
+      query: "SELECT TOP 1 c.id FROM c ORDER BY c.date DESC",
+    };
+
+    const { resources } = await this.purchases.items.query(querySpec).fetchAll();
+
+    if (resources.length === 0) {
+      return false;
+    }
+    const oldestItemId = resources[0].id;
+
+    try {
+      const { statusCode } = await this.purchases.item(oldestItemId, oldestItemId).delete();
+
+      return statusCode === 204;
+    } catch (error: any) {
+      if (error.statusCode === 404) {
+        return false;
+      }
+      throw error;
+    }
   }
 
   async getConfiguration(date: string = currentMonthDate()): Promise<ConfigurationDocument | null> {
@@ -124,9 +150,7 @@ export class BudgetRepository {
       parameters: [{ name: "@date", value: fromDate }],
     };
 
-    const { resources } = await this.purchases.items
-      .query<PurchaseDocument>(querySpec)
-      .fetchAll();
+    const { resources } = await this.purchases.items.query<PurchaseDocument>(querySpec).fetchAll();
 
     return resources;
   }

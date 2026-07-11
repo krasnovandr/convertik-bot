@@ -26,3 +26,11 @@ export interface AddTransactionResult {
   success: boolean;
   message: string;
 }
+
+export interface DetailsSummaryResult {
+  transactions: PurchaseDocument[];
+  budgetAvailable: number;
+  plannedSpends: number;
+  monthLimit: number;
+  actualSpends: number;
+}

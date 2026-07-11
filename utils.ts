@@ -1,15 +1,14 @@
 import { fmt, bold, join, FmtString } from "telegraf/format";
-import { PurchaseDocument } from "./types";
+import { DetailsSummaryResult } from "./types";
 
-export function formatTransactionsForTelegram(
-  transactions: PurchaseDocument[],
-  available: number,
-): FmtString {
+export function formatTransactionsForTelegram(details: DetailsSummaryResult): FmtString {
+  const { transactions, monthLimit, budgetAvailable, plannedSpends, actualSpends } = details;
+
   if (transactions.length === 0) {
     return fmt`No transactions recorded`;
   }
 
-  const lines: FmtString[] = [fmt`Current Month Transactions:`, fmt``];
+  const lines: FmtString[] = [fmt`Current Month Transactions:`];
 
   let lastDateLabel: string | null = null;
 
@@ -23,10 +22,10 @@ export function formatTransactionsForTelegram(
     });
 
     if (dateLabel !== lastDateLabel) {
+      lines.push(fmt``);
       lines.push(fmt`${bold(dateLabel)}`);
       lastDateLabel = dateLabel;
     }
-    1;
 
     const time = txDate.toLocaleTimeString("pl-PL", {
       hour: "2-digit",
@@ -40,7 +39,14 @@ export function formatTransactionsForTelegram(
   }
 
   lines.push(fmt``);
-  lines.push(fmt`${bold(`Available: ${available.toFixed(2)}`)}`);
+  lines.push(fmt`${bold(`Month Limit:`)} ${monthLimit.toFixed(2)}`);
+  lines.push(fmt`${bold(`Available:`)} ${budgetAvailable.toFixed(2)}`);
+  lines.push(fmt`${bold(`Estimated Spends:`)} ${plannedSpends.toFixed(2)}`);
+  lines.push(fmt`${bold(`Actual Spends:`)} ${actualSpends.toFixed(2)}`);
+
+  const difference = plannedSpends - actualSpends;
+  const differenceIndicator = difference >= 0 ? "🟢" : "🔴";
+  lines.push(fmt`${bold(`Difference:`)} ${differenceIndicator} ${difference.toFixed(2)}`);
 
   return join(lines, "\n");
 }

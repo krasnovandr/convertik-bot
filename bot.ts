@@ -5,7 +5,7 @@ import { BudgetRepository } from "./storage/BudgetRepository";
 import { getInitializedRepository } from "./storage/db";
 import { InvocationContext } from "@azure/functions";
 import { activeInvocationContext } from "./index";
-import { getDetailsMessage, handleTransactionMessage } from "./EventsHandler";
+import { getDetailsMessage, handleTransactionMessage, removeLastTransaction } from "./EventsHandler";
 
 export interface BotContext extends Context {
   db: BudgetRepository;
@@ -34,6 +34,16 @@ bot.use(async (ctx, next) => {
   if (ctx.chat?.type === "private") {
     await ctx.reply("No access");
   }
+});
+
+bot.command("remove_last", async (ctx) => {
+  await removeLastTransaction(ctx.db);
+
+  const message = 'Last transaction removed';
+
+  ctx.functionContext.log(message);
+
+  await ctx.reply(message);
 });
 
 bot.command("details", async (ctx) => {
