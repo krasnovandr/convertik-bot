@@ -1,0 +1,94 @@
+name: Deploy to Azure Function App
+
+# Trigger: run on every push to the main branch.
+# You can also add a manual trigger (workflow_dispatch) so you can deploy on demand.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # enables the "Run workflow" button in GitHub UI
+
+# Minimal token permissions — principle of least privilege.
+permissions:
+  contents: read   # needed to checkout the repository
+  id-token: write  # needed for OIDC login to Azure (no stored secrets)
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    env:
+      # Non-sensitive config — store these as GitHub repository variables
+      # (Settings → Secrets and variables → Actions → Variables tab)
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+      ZIP_PATH: deploy.zip
+
+    steps:
+      # ── 1. Check out source code ─────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Node.js (version matches your local dev environment) ───────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm' # caches ~/.npm between runs for faster installs
+
+      # ── 3. Install ALL dependencies (including devDependencies for build) ────
+      - name: Install dependencies
+        run: npm ci # faster & stricter than `npm install` in CI
+
+      # ── 4. Build TypeScript ──────────────────────────────────────────────────
+      - name: Build TypeScript project
+        run: npm run build
+
+      # ── 5. Strip dev dependencies to keep the ZIP small ─────────────────────
+      - name: Prune dev dependencies
+        run: npm prune --production
+
+      # ── 6. Create deployment ZIP ─────────────────────────────────────────────
+      - name: Create deployment package
+        run: zip -r "$ZIP_PATH" dist node_modules host.json package.json package-lock.json
+
+      # ── 7. Log in to Azure via OIDC (no long-lived credentials stored) ───────
+      #
+      # Prerequisites — run ONCE in Azure:
+      #   az ad app create --display-name "convertik-bot-github-actions"
+      #   az ad sp create --id <appId>
+      #   az role assignment create --role "Website Contributor" \
+      #     --assignee <objectId> --scope /subscriptions/<sub>/resourceGroups/<rg>
+      #   az ad app federated-credential create --id <appId> --parameters '{
+      #     "name": "github-main",
+      #     "issuer": "https://token.actions.githubusercontent.com",
+      #     "subject": "repo:<owner>/convertik-bot:ref:refs/heads/main",
+      #     "audiences": ["api://AzureADTokenExchange"]
+      #   }'
+      #
+      # Then add these as GitHub repository SECRETS
+      # (Settings → Secrets and variables → Actions → Secrets tab):
+      #   AZURE_CLIENT_ID     — the app (client) ID
+      #   AZURE_TENANT_ID     — your Azure AD tenant ID
+      #   AZURE_SUBSCRIPTION_ID — your Azure subscription ID
+      #
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # ── 8. Deploy ZIP to Azure Function App ──────────────────────────────────
+      - name: Deploy to Azure Function App
+        run: |
+          az functionapp deployment source config-zip \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$FUNCTION_APP_NAME" \
+            --src "$ZIP_PATH"
+
+      # ── 9. Clean up the ZIP artifact from the runner ─────────────────────────
+      - name: Remove deployment ZIP
+        if: always()
+        run: rm -f "$ZIP_PATH"
