@@ -8,7 +8,7 @@ export function formatTransactionsForTelegram(details: DetailsSummaryResult): Fm
     return fmt`No transactions recorded`;
   }
 
-  const lines: FmtString[] = [fmt`Current Month Transactions:`];
+  const lines: FmtString[] = [fmt`Month Transactions:`];
 
   let lastDateLabel: string | null = null;
 
