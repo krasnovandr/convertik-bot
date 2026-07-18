@@ -150,6 +150,7 @@ vite.config.ts.timestamp-*
 *.tfstate
 *.tfstate.*
 *.tfplan
+tfplan
 crash.log
 override.tf
 override.tf.json
