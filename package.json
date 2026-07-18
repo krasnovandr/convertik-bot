@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "func start --javascript -p 7072",
     "start:inspect": "npm run build && func start --javascript -p 7072 --language-worker -- \"--inspect=9229\"",

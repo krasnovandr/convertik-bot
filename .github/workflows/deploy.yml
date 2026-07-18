@@ -1,11 +1,13 @@
 name: Deploy to Azure Function App
 
-# Trigger: run on every push to the main branch.
+# Trigger: run only when source code changes under src on the main branch.
 # You can also add a manual trigger (workflow_dispatch) so you can deploy on demand.
 on:
   push:
     branches:
       - main
+    paths:
+      - src/**
   workflow_dispatch: # enables the "Run workflow" button in GitHub UI
 
 # Minimal token permissions — principle of least privilege.

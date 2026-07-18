@@ -1,4 +1,3 @@
-import { InvocationContext } from "@azure/functions/types/InvocationContext";
 import { BudgetRepository } from "./BudgetRepository";
 
 const connectionString = process.env.COSMOS_CONNECTION_STRING;
