@@ -13,6 +13,7 @@ locals {
     APPINSIGHTS_INSTRUMENTATIONKEY        = azurerm_application_insights.this.instrumentation_key
     DEPLOYMENT_STORAGE_CONNECTION_STRING  = azurerm_storage_account.this.primary_connection_string
     AzureWebJobsStorage                   = azurerm_storage_account.this.primary_connection_string
+    MONTH_LIMIT                   = var.month_limit
   }
 
   secret_app_settings = merge(
@@ -136,7 +137,6 @@ resource "azurerm_function_app_flex_consumption" "this" {
   lifecycle {
     ignore_changes = [
       storage_access_key,
-      app_settings
     ]
   }
 

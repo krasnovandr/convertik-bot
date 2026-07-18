@@ -62,6 +62,12 @@ variable "user_id_2" {
   default     = null
 }
 
+variable "month_limit" {
+  description = "Monthly limit for the bot"
+  type        = number
+  default     = 3000
+}
+
 variable "tags" {
   description = "Optional tags"
   type        = map(string)
