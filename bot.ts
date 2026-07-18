@@ -7,6 +7,9 @@ import { InvocationContext } from "@azure/functions";
 import { activeInvocationContext } from "./index";
 import { getDetailsMessage, handleTransactionMessage, removeLastTransaction } from "./EventsHandler";
 
+const currentTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+console.log(`Current Timezone: ${currentTZ}`);
+
 export interface BotContext extends Context {
   db: BudgetRepository;
   functionContext: InvocationContext;

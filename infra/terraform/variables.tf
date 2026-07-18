@@ -68,6 +68,12 @@ variable "month_limit" {
   default     = 3000
 }
 
+variable "website_time_zone" {
+  description = "Time zone used by the Function App host"
+  type        = string
+  default     = "Central European Standard Time"
+}
+
 variable "tags" {
   description = "Optional tags"
   type        = map(string)
