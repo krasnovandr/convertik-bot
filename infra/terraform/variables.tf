@@ -69,9 +69,9 @@ variable "month_limit" {
 }
 
 variable "website_time_zone" {
-  description = "Time zone used by the Function App host"
+  description = "IANA time zone used by Linux Function App host (for example Europe/Warsaw)"
   type        = string
-  default     = "Central European Standard Time"
+  default     = "Europe/Warsaw"
 }
 
 variable "tags" {
