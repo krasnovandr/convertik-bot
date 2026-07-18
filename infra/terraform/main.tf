@@ -13,7 +13,7 @@ locals {
     APPINSIGHTS_INSTRUMENTATIONKEY        = azurerm_application_insights.this.instrumentation_key
     DEPLOYMENT_STORAGE_CONNECTION_STRING  = azurerm_storage_account.this.primary_connection_string
     AzureWebJobsStorage                   = azurerm_storage_account.this.primary_connection_string
-    MONTH_LIMIT                   = var.month_limit
+    MONTH_LIMIT                           = var.month_limit
   }
 
   secret_app_settings = merge(
@@ -52,7 +52,7 @@ resource "azurerm_cosmosdb_account" "this" {
 
   geo_location {
     location          = var.cosmos_location
-    zone_redundant = false
+    zone_redundant    = false
     failover_priority = 0
   }
 
@@ -91,7 +91,7 @@ resource "azurerm_storage_container" "deployment" {
 }
 
 resource "azurerm_application_insights" "this" {
-  name                = "${var.function_app_name}"
+  name                = var.function_app_name
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   application_type    = "web"
@@ -137,6 +137,7 @@ resource "azurerm_function_app_flex_consumption" "this" {
   lifecycle {
     ignore_changes = [
       storage_access_key,
+      app_settings
     ]
   }
 
