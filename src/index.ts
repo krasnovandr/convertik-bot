@@ -11,7 +11,7 @@ app.http("webhook", {
 
     try {
       const body = await request.json();
-      context.log("Processing Telegram webhook request body", body);
+      context.log(`Processing Telegram webhook request body: ${JSON.stringify(body)}`);
 
       await bot.handleUpdate(body as any);
 
