@@ -52,7 +52,7 @@ bot.command("remove_last", async (ctx) => {
 bot.command("details", async (ctx) => {
   const formattedMessage = await getDetailsMessage(ctx.db);
 
-  ctx.functionContext.debug(formattedMessage.text);
+  ctx.functionContext.info(formattedMessage.text);
 
   await ctx.reply(formattedMessage);
 });
