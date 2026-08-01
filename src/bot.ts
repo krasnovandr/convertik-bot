@@ -3,7 +3,8 @@ import { message } from "telegraf/filters";
 import { BOT_TOKEN, USER_ID_1, USER_ID_2 } from "./constants";
 import { BudgetRepository } from "./storage/BudgetRepository";
 import { getInitializedRepository } from "./storage/db";
-import { logger } from "./index";
+import { InvocationContext } from "@azure/functions";
+import { activeInvocationContext } from "./index";
 import { getDetailsMessage, handleTransactionMessage, removeLastTransaction } from "./EventsHandler";
 
 const currentTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -11,6 +12,7 @@ console.log(`Current Timezone: ${currentTZ}`);
 
 export interface BotContext extends Context {
   db: BudgetRepository;
+  functionContext: InvocationContext;
 }
 
 if (!BOT_TOKEN) {
@@ -21,6 +23,7 @@ export const bot = new Telegraf<BotContext>(BOT_TOKEN);
 
 bot.use(async (ctx, next) => {
   ctx.db = await getInitializedRepository();
+  ctx.functionContext = activeInvocationContext!;
   return await next();
 });
 
@@ -41,7 +44,7 @@ bot.command("remove_last", async (ctx) => {
 
   const message = 'Last transaction removed';
 
-  logger.info(message);
+  ctx.functionContext.info(message);
 
   await ctx.reply(message);
 });
@@ -49,7 +52,7 @@ bot.command("remove_last", async (ctx) => {
 bot.command("details", async (ctx) => {
   const formattedMessage = await getDetailsMessage(ctx.db);
 
-  logger.info(formattedMessage.text);
+  ctx.functionContext.debug(formattedMessage.text);
 
   await ctx.reply(formattedMessage);
 });
@@ -57,7 +60,7 @@ bot.command("details", async (ctx) => {
 bot.command("clear", async (ctx) => {
   await ctx.db.clearCurrentMonthHistory();
 
-  logger.info("History was cleared");
+  ctx.functionContext.warn("History was cleared");
 
   await ctx.reply("History was cleared");
 });
@@ -69,7 +72,7 @@ bot.on(message("text"), async (ctx) => {
     text: ctx.message.text,
   });
 
-  logger.info(result.message);
+  ctx.functionContext.info(result.message);
 
   await ctx.reply(result.message);
 });
