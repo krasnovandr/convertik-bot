@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "func start --javascript -p 7072",
     "start:inspect": "npm run build && func start --javascript -p 7072 --language-worker -- \"--inspect=9229\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@types/node": "^26.0.1",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   }
 }

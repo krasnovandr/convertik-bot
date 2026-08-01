@@ -1,8 +1,16 @@
 import { fmt, bold, join, FmtString } from "telegraf/format";
-import { DetailsSummaryResult } from "./types";
+import { DetailsSummaryResult, PurchaseDocument } from "./types";
 
 export function formatTransactionsForTelegram(details: DetailsSummaryResult): FmtString {
-  const { transactions, monthLimit, budgetAvailable, plannedSpends, actualSpends } = details;
+  const {
+    transactions,
+    actualLimit,
+    estimatedLimit,
+    budgetAvailable,
+    dailyBudget,
+    plannedSpends,
+    actualSpends,
+  } = details;
 
   if (transactions.length === 0) {
     return fmt`No transactions recorded`;
@@ -11,6 +19,8 @@ export function formatTransactionsForTelegram(details: DetailsSummaryResult): Fm
   const lines: FmtString[] = [fmt`Month Transactions:`];
 
   let lastDateLabel: string | null = null;
+
+  transactions.sort((a, b) => SortByDateAsc(a, b));
 
   for (const tx of transactions) {
     const txDate = new Date(tx.date);
@@ -39,8 +49,10 @@ export function formatTransactionsForTelegram(details: DetailsSummaryResult): Fm
   }
 
   lines.push(fmt``);
-  lines.push(fmt`${bold(`Month Limit:`)} ${monthLimit.toFixed(2)}`);
+  lines.push(fmt`${bold(`Estimated fixed Limit:`)} ${estimatedLimit.toFixed(2)}`);
+  lines.push(fmt`${bold(`Actual Limit:`)} ${actualLimit.toFixed(2)}`);
   lines.push(fmt`${bold(`Available:`)} ${budgetAvailable.toFixed(2)}`);
+  lines.push(fmt`${bold(`Daily Budget:`)} ${dailyBudget.toFixed(2)}`);
   lines.push(fmt`${bold(`Estimated Spends:`)} ${plannedSpends.toFixed(2)}`);
   lines.push(fmt`${bold(`Actual Spends:`)} ${actualSpends.toFixed(2)}`);
 
@@ -49,6 +61,10 @@ export function formatTransactionsForTelegram(details: DetailsSummaryResult): Fm
   lines.push(fmt`${bold(`Difference:`)} ${differenceIndicator} ${difference.toFixed(2)}`);
 
   return join(lines, "\n");
+}
+
+function SortByDateAsc(a: PurchaseDocument, b: PurchaseDocument): number {
+  return new Date(a.date).getTime() - new Date(b.date).getTime();
 }
 
 export function parseBotCommand(inputText: string): { amount: number; description: string } | null {

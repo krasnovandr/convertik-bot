@@ -9,23 +9,26 @@ import { MONTH_LIMIT as DEFAULT_MONTH_LIMIT } from "./constants";
 import { AddTransactionMessageInput, AddTransactionResult } from "./types";
 
 export async function getDetailsMessage(db: BudgetRepository) {
-  const actualSpends = await db.getTotalCostForMonth();
-  const currentMonthTransactions = await db.getTransactionsFromDate();
-
-  const monthLimit = await ensureCurrentMonthLimit(db);
-  const budgetAvailable = monthLimit - actualSpends;
-  const estimatedSpends = calculatePlannedSpends(monthLimit, actualSpends);
+  const [actualSpends, currentMonthTransactions, actualLimit] = await Promise.all([
+    db.getTotalCostForMonth(),
+    db.getTransactionsFromDate(),
+    ensureCurrentMonthLimit(db),
+  ]);
+  const budgetAvailable = actualLimit - actualSpends;
+  const { amountPerDay: dailyBudget, plannedSpends: estimatedSpends } = calculatePlannedSpends(actualLimit);
 
   return formatTransactionsForTelegram({
     transactions: currentMonthTransactions,
-    monthLimit:monthLimit,
+    actualLimit,
+    estimatedLimit: DEFAULT_MONTH_LIMIT,
     budgetAvailable,
     plannedSpends: estimatedSpends,
+    dailyBudget,
     actualSpends,
   });
 }
 
-function calculatePlannedSpends(monthLimit: number, currentMonthTotal: number) {
+function calculatePlannedSpends(monthLimit: number) {
   const now = new Date();
   const currentDay = now.getDate();
   const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -33,7 +36,7 @@ function calculatePlannedSpends(monthLimit: number, currentMonthTotal: number) {
   const amountPerDay = monthLimit / totalDaysInMonth;
   const plannedSpends = amountPerDay * currentDay;
 
-  return plannedSpends;
+  return { amountPerDay, plannedSpends };
 }
 
 export async function removeLastTransaction(db: BudgetRepository): Promise<void> {
@@ -75,18 +78,22 @@ async function ensureCurrentMonthLimit(db: BudgetRepository): Promise<number> {
   const currentMonthConfig = await db.getConfiguration();
 
   if (currentMonthConfig) {
-    return currentMonthConfig.maxAmount;
+    return currentMonthConfig.actualLimit;
   }
 
-  const totalForPreviousMonth = await db.getTotalCostForMonth(previousMonthDate());
+  const prevDate = previousMonthDate();
+  const totalForPreviousMonth = await db.getTotalCostForMonth(prevDate);
   let newMonthLimit = DEFAULT_MONTH_LIMIT;
 
   if (totalForPreviousMonth !== 0) {
-    const available = DEFAULT_MONTH_LIMIT - totalForPreviousMonth;
-    newMonthLimit = DEFAULT_MONTH_LIMIT + available;
+    const previousMonthConfig = await db.getConfiguration(prevDate);
+    if (previousMonthConfig) {
+      const available = previousMonthConfig.estimatedLimit - totalForPreviousMonth;
+      newMonthLimit = DEFAULT_MONTH_LIMIT + available;
+    }
   }
 
-  await db.setMonthLimit(currentMonthDate(), newMonthLimit);
+  await db.setMonthLimit(currentMonthDate(), DEFAULT_MONTH_LIMIT, newMonthLimit);
 
   return newMonthLimit;
 }

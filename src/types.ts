@@ -13,7 +13,8 @@ export interface PurchaseDocument extends PurchaseInput {
 export interface ConfigurationDocument {
   id: string;
   date: string;
-  maxAmount: number;
+  estimatedLimit: number;
+  actualLimit: number;
 }
 
 export interface AddTransactionMessageInput {
@@ -31,6 +32,8 @@ export interface DetailsSummaryResult {
   transactions: PurchaseDocument[];
   budgetAvailable: number;
   plannedSpends: number;
-  monthLimit: number;
+  dailyBudget: number;
+  estimatedLimit: number;
+  actualLimit: number;
   actualSpends: number;
 }

@@ -24,22 +24,17 @@ export class BudgetRepository {
       throughput: 400,
     });
 
-    const { container: configuration, statusCode: configurationStatusCode } =
-      await database.containers.createIfNotExists({
-        id: "configuration",
-        partitionKey: "/id",
-        throughput: 400,
-      });
+    const { container: configuration } = await database.containers.createIfNotExists({
+      id: "configuration",
+      partitionKey: "/id",
+      throughput: 400,
+    });
 
     this.purchases = purchases;
     this.configuration = configuration;
   }
 
   async addTransaction(transaction: PurchaseInput): Promise<PurchaseDocument> {
-    if (!this.purchases) {
-      throw new Error("Repository not initialized. Call init() first.");
-    }
-
     const document: PurchaseDocument = {
       id: crypto.randomUUID(),
       userId: transaction.userId,
@@ -49,7 +44,7 @@ export class BudgetRepository {
       date: new Date().toISOString(),
     };
 
-    const { resource } = await this.purchases.items.create<PurchaseDocument>(document);
+    const { resource } = await this.purchases!.items.create<PurchaseDocument>(document);
 
     if (!resource) {
       throw new Error("Failed to create transaction document.");
@@ -59,15 +54,11 @@ export class BudgetRepository {
   }
 
   async removeLastTransaction(): Promise<boolean> {
-    if (!this.purchases) {
-      throw new Error("Repository not initialized. Call init() first.");
-    }
-
     const querySpec = {
       query: "SELECT TOP 1 c.id FROM c ORDER BY c.date DESC",
     };
 
-    const { resources } = await this.purchases.items.query(querySpec).fetchAll();
+    const { resources } = await this.purchases!.items.query(querySpec).fetchAll();
 
     if (resources.length === 0) {
       return false;
@@ -75,7 +66,7 @@ export class BudgetRepository {
     const oldestItemId = resources[0].id;
 
     try {
-      const { statusCode } = await this.purchases.item(oldestItemId, oldestItemId).delete();
+      const { statusCode } = await this.purchases!.item(oldestItemId, oldestItemId).delete();
 
       return statusCode === 204;
     } catch (error: any) {
@@ -87,27 +78,18 @@ export class BudgetRepository {
   }
 
   async getConfiguration(date: string = currentMonthDate()): Promise<ConfigurationDocument | null> {
-    if (!this.configuration) {
-      throw new Error("Repository not initialized. Call init() first.");
-    }
-
     const querySpec = {
       query: "SELECT * FROM c WHERE c.date = @date",
       parameters: [{ name: "@date", value: date }],
     };
 
-    const { resources } = await this.configuration.items
-      .query<ConfigurationDocument>(querySpec)
-      .fetchAll();
+    const { resources } =
+      await this.configuration!.items.query<ConfigurationDocument>(querySpec).fetchAll();
 
     return resources[0] ?? null;
   }
 
   async clearCurrentMonthHistory(): Promise<boolean> {
-    if (!this.purchases) {
-      throw new Error("Repository not initialized. Call init() first.");
-    }
-
     const startOfMonth = currentMonthDate();
 
     const querySpec = {
@@ -115,9 +97,8 @@ export class BudgetRepository {
       parameters: [{ name: "@startOfMonth", value: startOfMonth }],
     };
 
-    const { resources: transactionsToDelete } = await this.purchases.items
-      .query<PurchaseDocument>(querySpec)
-      .fetchAll();
+    const { resources: transactionsToDelete } =
+      await this.purchases!.items.query<PurchaseDocument>(querySpec).fetchAll();
 
     if (transactionsToDelete.length === 0) {
       return false;
@@ -129,7 +110,7 @@ export class BudgetRepository {
       partitionKey: doc.id,
     }));
 
-    const result = await this.purchases.items.executeBulkOperations(deleteOperations);
+    const result = await this.purchases!.items.executeBulkOperations(deleteOperations);
 
     return result.every((res) => res.response?.statusCode === 204);
   }
@@ -150,16 +131,12 @@ export class BudgetRepository {
       parameters: [{ name: "@date", value: fromDate }],
     };
 
-    const { resources } = await this.purchases.items.query<PurchaseDocument>(querySpec).fetchAll();
+    const { resources } = await this.purchases!.items.query<PurchaseDocument>(querySpec).fetchAll();
 
     return resources;
   }
 
   async getTotalCostForMonth(fromMonth: string = currentMonthDate()): Promise<number> {
-    if (!this.purchases) {
-      throw new Error("Repository not initialized. Call init() first.");
-    }
-
     const querySpec = {
       query: `
         SELECT VALUE SUM(c.amount) 
@@ -169,21 +146,19 @@ export class BudgetRepository {
       parameters: [{ name: "@date", value: fromMonth }],
     };
 
-    const { resources } = await this.purchases.items.query<number>(querySpec).fetchAll();
+    const { resources } = await this.purchases!.items.query<number>(querySpec).fetchAll();
 
     return resources[0] ?? 0;
   }
 
-  async setMonthLimit(date: string, limit: number) {
-    if (!this.configuration) {
-      throw new Error("Repository not initialized. Call init() first.");
-    }
+  async setMonthLimit(date: string, estimatedLimit: number, actualLimit: number): Promise<void> {
     const defaultConfig: ConfigurationDocument = {
       id: crypto.randomUUID(),
       date: date,
-      maxAmount: limit,
+      estimatedLimit: estimatedLimit,
+      actualLimit: actualLimit,
     };
 
-    await this.configuration.items.create(defaultConfig);
+    await this.configuration!.items.create(defaultConfig);
   }
 }
